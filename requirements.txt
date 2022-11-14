@@ -1,2 +1,4 @@
 ArducamSDK
 arducam_config_parser
+numpy
+opencv-python
