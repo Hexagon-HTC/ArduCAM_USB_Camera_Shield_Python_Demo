@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
         camera.start()
         # camera.setCtrl("setFramerate", 2)
-        # camera.setCtrl("setExposureTime", 20000)
-        # camera.setCtrl("setAnalogueGain", 800)
+        camera.setCtrl("setExposureTime", 30000)
+        camera.setCtrl("setAnalogueGain", 1)
         ArducamSDK.Py_ArduCam_flush(camera.handle)
         cameras.append(camera)
 
@@ -108,7 +108,7 @@ if __name__ == "__main__":
             it_count += 1
             stitched_image = np.concatenate(current_frames, axis=0)
 
-            if save_ or it_count % 5 == 0:
+            if save_ and it_count % 5 == 0:
                 saved_frames.append(stitched_image)
 
             if scale_width != -1:
