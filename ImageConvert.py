@@ -59,7 +59,9 @@ def convert_color(image,color_mode):
         image = cv2.cvtColor(image,COLOR_BayerGB2BGR)
     if color_mode == 3:
         image = cv2.cvtColor(image,COLOR_BayerBG2BGR)
-    if color_mode < 0 and color_mode > 3:
+    if color_mode == 4:
+        pass  # grayscale
+    if color_mode < 0 or color_mode > 4:
         image = cv2.cvtColor(image,COLOR_BayerGB2BGR)
     return image
 def convert_image(data,cfg,color_mode):
