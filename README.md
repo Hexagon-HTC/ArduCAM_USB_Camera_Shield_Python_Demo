@@ -36,22 +36,39 @@ python3 -m pip install opencv-python numpy
 
 ## Download Code
 ```shell
-git clone https://github.com/ArduCAM/ArduCAM_USB_Camera_Shield_Python_Demo.git
+git clone https://github.com/Hexagon-HTC/ArduCAM_USB_Camera_Shield_Python_Demo.git
 cd ArduCAM_USB_Camera_Shield_Python_Demo
+git checkout multicam
 ```
 
 ## Run the Demo
 ```shell
-python3 ArduCam_Demo.py -v --preview-width 1280 -f <path for camera cfg>
+python3 ArduCam_Demo.py -v --preview-width 1280 --target-fps 15 -f <path for camera cfg>
 ```
 ## Parameters
 - -v: Whether to display camera information.
 - --preview-width: Sets the width of the preview screen.
-- -f: Specify the camera config file.
+- --target-fps: Sets internal timeouts for frame waiting -- set it to slightly less than expected FPS
+- -f: Specify the meta config file.
+
+## Meta-configuration file syntax
+```ini
+[DEFAULT]
+base_path = .
+
+[profiles]
+profile1 = ${base_path}/my/cam/type/camera_config_file1.cfg
+profile2 = ${base_path}/my/cam/type/camera_config_file2.cfg
+
+[serials]
+ABCD-1234-1234 = profile1
+ABCD-5678-5678 = profile2
+```
+
+**Note: The camera configuration files referenced inside the profiles can be found here: [ArduCAM_USB_Camera_Shield](https://github.com/ArduCAM/ArduCAM_USB_Camera_Shield/tree/master/Config)**
 
 ## Example
 ```shell
-python3 ArduCam_Demo.py -v --preview-width 1280 -f IMX477/4032x3040/IMX477_2Lane_4032x3040_RAW8_A.cfg
+python3 ArduCam_Demo.py -v --preview-width 1280 --target-fps 15 -f camera_config/multicam_config.cfg
 ```
 
-**Note: Configuration files can be found here: [ArduCAM_USB_Camera_Shield](https://github.com/ArduCAM/ArduCAM_USB_Camera_Shield/tree/master/Config)**
