@@ -1,4 +1,6 @@
 import argparse
+import configparser
+import os
 import time
 import signal
 import cv2
@@ -32,6 +34,17 @@ def display_fps(index):
 display_fps.start = time.time()
 # display_fps.frame_count = 0
 
+
+def get_config_file(base_path, cfg, serial):
+    if serial not in cfg["serials"]:
+        raise RuntimeError(f"Config not found for camera {serial}.")
+
+    profile = cfg["serials"].get(serial)
+    cam_cfg = cfg["profiles"].get(profile)
+
+    path = os.path.join(base_path, cam_cfg)
+    return path
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--config-file', type=str, required=True, help='Specifies the configuration file.')
@@ -48,14 +61,22 @@ if __name__ == "__main__":
     no_preview: bool = args.nopreview
     target_fps: int = args.target_fps
 
+    ## Parse meta-config file
+    config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    config.read(config_file)
+    base_path = os.path.dirname(config_file)
+
     ## Scan for devices
     devices_num,index,serials = ArducamSDK.Py_ArduCam_scan()
     print("Found %d devices"%devices_num)
+
+    serial_strings = []
     for i in range(devices_num):
         datas = serials[i]
         serial = "%c%c%c%c-%c%c%c%c-%c%c%c%c"%(datas[0],datas[1],datas[2],datas[3],
                                             datas[4],datas[5],datas[6],datas[7],
                                             datas[8],datas[9],datas[10],datas[11])
+        serial_strings.append(serial)
         print("Index:",index[i],"Serial:",serial)
 
     ## Open all cameras
@@ -63,7 +84,12 @@ if __name__ == "__main__":
     for i in range(devices_num):
         camera = ArducamCamera()
 
-        if not camera.openCamera(config_file, index=i):
+        # find correct config
+        serial = serial_strings[i]
+        cam_cfg = get_config_file(base_path, config, serial)
+        print(cam_cfg)
+
+        if not camera.openCamera(cam_cfg, index=i):
             raise RuntimeError("Failed to open camera.")
 
         if verbose:
