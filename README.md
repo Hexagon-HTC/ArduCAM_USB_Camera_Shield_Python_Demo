@@ -56,9 +56,13 @@ python3 ArduCam_Demo.py -v --preview-width 1280 --target-fps 15 -f <path for cam
 [DEFAULT]
 base_path = .
 
-[profiles]
-profile1 = ${base_path}/my/cam/type/camera_config_file1.cfg
-profile2 = ${base_path}/my/cam/type/camera_config_file2.cfg
+[profile1]
+file = ${base_path}/my/cam/type/camera_config_file1.cfg
+order = 0
+
+[profile2]
+file = ${base_path}/my/cam/type/camera_config_file2.cfg
+order = 1
 
 [serials]
 ABCD-1234-1234 = profile1

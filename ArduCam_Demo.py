@@ -42,10 +42,17 @@ def get_config_file(base_path, cfg, serial):
         raise RuntimeError(f"Config not found for camera {serial}.")
 
     profile = cfg["serials"].get(serial)
-    cam_cfg = cfg["profiles"].get(profile)
+    cam_cfg = cfg[profile].get("file")
+    order = cfg[profile].get("order")
 
     path = os.path.join(base_path, cam_cfg)
-    return path
+    return path, order
+
+
+def flush_cameras(cameras):
+    for camera in cameras:
+        ArducamSDK.Py_ArduCam_flush(camera.handle)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -83,13 +90,14 @@ if __name__ == "__main__":
 
     ## Open all cameras
     cameras = []
+    orders = []
     for i in range(devices_num):
         camera = ArducamCamera()
 
         # find correct config
         serial = serial_strings[i]
-        cam_cfg = get_config_file(base_path, config, serial)
-        print(cam_cfg)
+        cam_cfg, order = get_config_file(base_path, config, serial)
+        print(cam_cfg, order)
 
         retry_count = 0
         while not camera.openCamera(cam_cfg, index=i):
@@ -107,6 +115,7 @@ if __name__ == "__main__":
         camera.setCtrl("setAnalogueGain", 1)
         ArducamSDK.Py_ArduCam_flush(camera.handle)
         cameras.append(camera)
+        orders.append(order)
 
     ## Run main loop
     display_fps.frame_count = [0] * devices_num
@@ -116,13 +125,18 @@ if __name__ == "__main__":
     count_timeout = 0
     it_count = 0
 
+    cameras = [c for o, c in sorted(zip(orders, cameras), key=lambda pair: pair[0])]
+    flush_cameras(cameras)
+
     cv2.namedWindow("Arducam0")
 
     while not exit_:
         current_frames: List[np.ndarray] = []
+        availables = []
 
         for i, camera in enumerate(cameras):
             ret, data, cfg, available_before = camera.read(timeout=1000./target_fps)
+            availables.append(available_before)
             # print(f'[cam {i}] available: {available_before}')
 
             if ret:
@@ -139,6 +153,7 @@ if __name__ == "__main__":
                 break
 
         if len(current_frames) == devices_num:
+            print(f"Available: {availables}")
             it_count += 1
 
             if save_ and it_count % 5 == 0:
@@ -171,6 +186,9 @@ if __name__ == "__main__":
                     cv2.imwrite(f"images/image{total_saved}/camera{i}.bmp", frame)
                 total_saved += 1
             saved_frames = []
+        elif key == ord('f'):
+            flush_cameras(cameras)
+            it_count = 0
 
     for camera in cameras:
         camera.stop()
