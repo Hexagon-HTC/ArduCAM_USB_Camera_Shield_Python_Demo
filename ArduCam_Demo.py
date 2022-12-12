@@ -89,8 +89,12 @@ if __name__ == "__main__":
         cam_cfg = get_config_file(base_path, config, serial)
         print(cam_cfg)
 
-        if not camera.openCamera(cam_cfg, index=i):
-            raise RuntimeError("Failed to open camera.")
+        retry_count = 0
+        while not camera.openCamera(cam_cfg, index=i):
+            retry_count += 1
+            time.sleep(1)
+            if retry_count == 10:
+                raise RuntimeError("Failed to open camera.")
 
         if verbose:
             camera.dumpDeviceInfo()
