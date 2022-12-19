@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
         camera.start()
         # camera.setCtrl("setFramerate", 2)
-        camera.setCtrl("setExposureTime", 30000)
+        # camera.setCtrl("setExposure", 50)
         camera.setCtrl("setAnalogueGain", 1)
         ArducamSDK.Py_ArduCam_flush(camera.handle)
         cameras.append(camera)
