@@ -3,7 +3,7 @@ import configparser
 import os
 import time
 import signal
-from typing import List
+from typing import List, Any, Tuple
 
 import cv2
 
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     ## Run main loop
     display_fps.frame_count = [0] * devices_num
     scale_width = preview_width
-    saved_frames: List[List[np.ndarray]] = []
+    saved_frames: List[List[Tuple[Any, np.ndarray]]] = []
     total_saved = 0
     count_timeout = 0
     it_count = 0
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     cv2.namedWindow("Arducam0")
 
     while not exit_:
-        current_frames: List[np.ndarray] = []
+        current_frames: List[Tuple[Any, np.ndarray]] = []
         availables = []
 
         for i, camera in enumerate(cameras):
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
             if ret:
                 image = convert_image(data, cfg, camera.color_mode)
-                current_frames.append(image)
+                current_frames.append((cfg, image))
                 display_fps(i)
 
             else:
@@ -160,13 +160,14 @@ if __name__ == "__main__":
                 saved_frames.append(current_frames)
 
             if not no_preview:
-                for i, frame in enumerate(current_frames):
+                for i, (cfg, frame) in enumerate(current_frames):
                     if scale_width != -1:
                         scale = scale_width / frame.shape[0]
                         frame = cv2.resize(frame, None, fx=scale, fy=scale)
                         # print(stitched_image.shape)
 
-                    cv2.imshow(f"Arducam{i}", frame)
+                    preview_bit_shift = (8 * cfg["u8PixelBytes"]) - cfg["u8PixelBits"]
+                    cv2.imshow(f"Arducam{i}", frame << preview_bit_shift)
 
         elif len(current_frames) > 0:
             print(f'Readout desync -- read {len(current_frames)}/{devices_num} cameras')
@@ -182,8 +183,8 @@ if __name__ == "__main__":
             save_ = False
             for frame_set in saved_frames:
                 os.makedirs(f"images/image{total_saved}/", exist_ok=True)
-                for i, frame in enumerate(frame_set):
-                    cv2.imwrite(f"images/image{total_saved}/camera{i}.bmp", frame)
+                for i, (_, frame) in enumerate(frame_set):
+                    cv2.imwrite(f"images/image{total_saved}/camera{i}.tiff", frame)
                 total_saved += 1
             saved_frames = []
         elif key == ord('f'):

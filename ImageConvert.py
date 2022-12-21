@@ -34,8 +34,8 @@ def RGB565ToMat(data,Width,Height):
 
 def dBytesToMat(data,bitWidth,Width,Height):
     arr = np.frombuffer(data,dtype=np.uint16)
-    arr = (arr >> (bitWidth - 8))
-    arr = arr.astype(np.uint8)
+    # arr = (arr >> (bitWidth - 8))
+    # arr = arr.astype(np.uint8)
     image = arr.reshape(Height,Width,1)
     return image
 def separationImage(data,Width,Height):
